@@ -37,7 +37,36 @@ python scripts/create_api_key.py --tenant-id tenant_a --name "生产环境"
 -H "Authorization: Bearer rk_live_你的key"
 ```
 
-### 4. 创建知识库并上传文档
+需要有效期时加 `--expires-days`（不传则永不过期）：
+
+```bash
+python scripts/create_api_key.py --tenant-id tenant_a --name "生产环境" --expires-days 90
+```
+
+### 4. 密钥生命周期（查看 / 吊销 / 轮换）
+
+密钥只在平台侧管理，没有公开接口。创建时打印的 `key_prefix`（形如 `rk_a1b2`）就是后续定位用的标识。
+
+```bash
+# 查看该租户全部密钥：id / prefix / 备注 / 状态 / 有效期 / 创建时间
+python scripts/revoke_api_key.py --tenant-id tenant_a --list
+
+# 吊销（三选一定位：--key-id | --key-prefix | --name）
+python scripts/revoke_api_key.py --tenant-id tenant_a --key-prefix rk_a1b2 --yes
+
+# 轮换：吊销旧密钥并签发同名新密钥
+python scripts/revoke_api_key.py --tenant-id tenant_a --name "生产环境" --rotate --yes
+```
+
+规则：
+
+- 吊销 = 把 `api_keys.status` 改为 `revoked`，鉴权侧立即失效（`get_active_by_hash` 只认 `active` 且未过期）
+- 重复吊销是**幂等 no-op**，不会报错
+- `--key-prefix` 支持前缀匹配；命中多条会**拒绝执行并列出候选**，不会误伤
+- 吊销租户**最后一把有效密钥**会被拒绝（防止锁死），需显式 `--force`，或用 `--rotate` 换发
+- 删除类操作在非交互环境下必须显式传 `--yes`
+
+### 5. 创建知识库并上传文档
 
 见 [README](../README.md) 中的「创建知识库」「上传文档」示例。
 

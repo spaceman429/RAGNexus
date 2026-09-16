@@ -34,3 +34,32 @@ class ApiKeyRepository:
         if api_key.tenant is None or api_key.tenant.status != TenantStatus.ACTIVE:
             return None
         return api_key
+
+    def list_by_tenant(self, tenant_id: str) -> list[ApiKey]:
+        stmt = (
+            select(ApiKey).where(ApiKey.tenant_id == tenant_id).order_by(ApiKey.created_at.desc())
+        )
+        return list(self.db.scalars(stmt).all())
+
+    def get_by_id_and_tenant(self, api_key_id: str, tenant_id: str) -> ApiKey | None:
+        stmt = select(ApiKey).where(
+            ApiKey.id == api_key_id,
+            ApiKey.tenant_id == tenant_id,
+        )
+        return self.db.scalar(stmt)
+
+    def list_by_prefix(self, tenant_id: str, key_prefix: str) -> list[ApiKey]:
+        stmt = (
+            select(ApiKey)
+            .where(
+                ApiKey.tenant_id == tenant_id,
+                ApiKey.key_prefix.like(f"{key_prefix}%"),
+            )
+            .order_by(ApiKey.created_at.desc())
+        )
+        return list(self.db.scalars(stmt).all())
+
+    def revoke(self, api_key: ApiKey) -> ApiKey:
+        api_key.status = ApiKeyStatus.REVOKED
+        self.db.flush()
+        return api_key

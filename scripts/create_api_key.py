@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Create an API key for a tenant.")
     parser.add_argument("--tenant-id", required=True, help="existing tenant_id")
     parser.add_argument("--name", required=True, help="key remark, e.g. local dev")
+    parser.add_argument(
+        "--expires-days",
+        type=int,
+        default=None,
+        help="key validity in days; omit for a non-expiring key",
+    )
     args = parser.parse_args()
 
     tenant_id = args.tenant_id.strip()
@@ -29,6 +36,13 @@ def main() -> int:
     if not tenant_id or not name:
         print("error: --tenant-id and --name cannot be empty", file=sys.stderr)
         return 1
+
+    expires_at = None
+    if args.expires_days is not None:
+        if args.expires_days <= 0:
+            print("error: --expires-days must be a positive integer", file=sys.stderr)
+            return 1
+        expires_at = datetime.now(timezone.utc) + timedelta(days=args.expires_days)
 
     db = SessionLocal()
     try:
@@ -48,12 +62,14 @@ def main() -> int:
             key_prefix=key_prefix,
             name=name,
             status=ApiKeyStatus.ACTIVE,
-            expires_at=None,
+            expires_at=expires_at,
         )
         ApiKeyRepository(db).create(api_key)
         db.commit()
 
+        expires_label = expires_at.isoformat() if expires_at is not None else "never"
         print(f"api key created: tenant_id={tenant_id} key_prefix={key_prefix} name={name}")
+        print(f"expires_at: {expires_label}")
         print(f"plain key (save now, shown once): {raw_key}")
         return 0
     except Exception as exc:

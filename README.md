@@ -223,6 +223,24 @@ python scripts/update_tenant_plan.py --tenant-id <tenant_id> --plan pro
 
 设计理由：租户开通需同时绑定**套餐、配额与结算**关系，开放自助注册会把资源与风控敞口暴露给外部；接入方属于 B 端角色，走审批开户更可控。
 
+**密钥生命周期**同样收在运维侧，不暴露公开接口：
+
+```bash
+# 查看某租户全部密钥（只读）
+python scripts/revoke_api_key.py --tenant-id <tenant_id> --list
+
+# 吊销：支持按 --key-id / --key-prefix / --name 定位，需 --yes 确认
+python scripts/revoke_api_key.py --tenant-id <tenant_id> --key-prefix rk_a1b2 --yes
+
+# 轮换：吊销旧密钥并签发同名新密钥（明文只打印一次）
+python scripts/revoke_api_key.py --tenant-id <tenant_id> --key-prefix rk_a1b2 --rotate --yes
+
+# 签发带有效期的密钥（不传 --expires-days 则永不过期）
+python scripts/create_api_key.py --tenant-id <tenant_id> --name "prod" --expires-days 90
+```
+
+吊销即把 `api_keys.status` 置为 `revoked`；鉴权侧 `get_active_by_hash` 只认 `status=active` **且未过期**的密钥，二者任一不满足直接返回未授权。为避免把租户锁死，吊销最后一把有效密钥需显式加 `--force`，或用 `--rotate` 直接换发。
+
 **隔离链路**（四道关卡）：
 
 1. `Authorization: Bearer rk_live_xxx` → 取 `key_hash` 做 sha256 比对
@@ -359,6 +377,7 @@ docker run --env-file .env -p 8000:8000 rag-center
 - **解析范围**：仅支持文本型 PDF 与 Word，**不含 OCR**，扫描件与纯图片 PDF 无法提取内容。
 - **租户隔离**：基于应用层鉴权 + `tenant_id` 查询下推，**未启用 PostgreSQL RLS 行级安全**。当前规模下应用层收口更易调试；多租户规模扩大后可叠加 RLS 做纵深防御。
 - **写入一致性**：向量与 ES 为**最终一致**，非分布式事务。顺序为「向量写入挂起（不提交）→ 写 ES → 成功才统一 commit」，任一步失败整体 rollback 并标记失败，靠任务重试与新事务整篇重跑补偿。
-- **租户开通**：仅提供平台侧脚本开户，无自助注册 API。
+- **租户开通**：仅提供平台侧脚本开户，无自助注册 API；密钥的查看/吊销/轮换同样走脚本（`revoke_api_key.py`），未提供公开管理接口。
+- **密钥审计**：`status` 变更为就地更新，**未记录 `revoked_at` 时间戳**；若需审计密钥吊销时间，需新增字段并补迁移。
 - **编排方式**：检索链路是固定 pipeline，未引入 LangGraph 等图编排框架；固定链路在延迟与可预测性上更可控。
 - **评测规模**：Golden Set 为人工标注的小规模集合，用于回归对比而非统计显著性验证。
