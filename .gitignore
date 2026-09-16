@@ -1,0 +1,24 @@
+.env
+frontend/.env
+*.tsbuildinfo
+frontend/vite.config.d.ts
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+postgres_data/
+logs/
+data/uploads/
+eval/reports/
+eval/datasets/imported_from_feedback.json
+vite-env.d.ts
+
+# IDE / 编辑器
+.idea/
+.vscode/
+*.iml

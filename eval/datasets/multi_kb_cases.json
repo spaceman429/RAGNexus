@@ -1,0 +1,25 @@
+{
+  "name": "multi_kb_recruitment",
+  "kb_id": "b734cb4b-7345-43f6-8667-17f2c3748f57",
+  "default_profile": "balanced",
+  "cases": [
+    {
+      "id": "multi_kb_resume_and_offer",
+      "question": "技术岗简历怎么核验 Agent 能力，Offer 邮件模板有哪些要点？",
+      "kb_ids": [
+        "b734cb4b-7345-43f6-8667-17f2c3748f57",
+        "70d6a771-d475-41aa-a309-3069e8e2ec33"
+      ],
+      "ground_truth": "RAG 链路核验需能说明分块、Embedding、Hybrid Search 与评估方法；Offer 模板需通过公司邮箱发送并替换变量，禁止口头承诺未经审批的薪酬职级。"
+    },
+    {
+      "id": "multi_kb_screening_template",
+      "question": "候选人淘汰通知要在几个工作日内发出？简历造假有哪些常见类型？",
+      "kb_ids": [
+        "b734cb4b-7345-43f6-8667-17f2c3748f57",
+        "70d6a771-d475-41aa-a309-3069e8e2ec33"
+      ],
+      "ground_truth": "淘汰通知须在面试结果确定后 3 个工作日内发出；常见造假包括 Demo 包装、框架拼贴、效果夸大、微调虚构与规模夸大。"
+    }
+  ]
+}

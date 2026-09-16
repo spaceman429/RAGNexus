@@ -1,0 +1,48 @@
+{
+  "name": "ecommerce_retrieval",
+  "kb_id": "b0646f80-13ee-46fb-890c-c01a7a75b449",
+  "default_profile": "balanced",
+  "_comment": "Main eval set. Primary source: export_eval_cases_from_langfuse.py (<3 scores). Seed cases copied for cold start; replace kb_id before running.",
+  "cases": [
+    {
+      "id": "coupon_stack",
+      "question": "满减和优惠券能叠加吗？",
+      "ground_truth": "满折通常不与满减同享；店铺券可与平台跨店满减按活动规则叠加。"
+    },
+    {
+      "id": "refund_unshipped",
+      "question": "还没发货可以申请退款吗？",
+      "ground_truth": "未发货订单申请后 2 小时内原路退款。"
+    },
+    {
+      "id": "shipping_sla",
+      "question": "现货订单多久必须揽收？",
+      "ground_truth": "现货普通订单须在付款后 24 小时内揽收。"
+    },
+    {
+      "id": "price_protection",
+      "question": "买贵了可以价保退差价吗？",
+      "ground_truth": "参与价保的商品在价保期内降价，消费者可申请退差价。"
+    },
+    {
+      "id": "coupon_expire",
+      "question": "优惠券过期还能用吗？",
+      "ground_truth": "优惠券领取后 7~30 天有效，过期作废不补发。"
+    },
+    {
+      "id": "settlement_new_seller",
+      "question": "新商家货款多久结算？",
+      "ground_truth": "新商家前 90 天货款结算周期为 T+15。"
+    },
+    {
+      "id": "prohibited_goods",
+      "question": "哪些商品禁止在平台上架？",
+      "ground_truth": "禁售清单包括枪支弹药、假币发票、未取得批号的药品医疗器械、侵权仿品等。"
+    },
+    {
+      "id": "platform_dispute",
+      "question": "买卖纠纷平台多久出裁决？",
+      "ground_truth": "平台介入后 5 个工作日内出具裁决，裁决后 3 个工作日内执行退款或打款。"
+    }
+  ]
+}
